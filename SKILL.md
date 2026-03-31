@@ -71,7 +71,7 @@ Token 優化: 若對話過長，Agent 可利用 --read-context 取得歷史，�
 
 ### 執行指令
 ```bash
-node /path/to/flight_planner/flight_planner.js \
+node /home/node/.nine/tg_bot/projects/local/NineTripExpert/flight_planner/flight_planner.js \
   --segments '[{"from":"HKG","to":"NRT","date":"2026-05-01"},{"from":"NRT","to":"HKG","date":"2026-05-07"}]' \
   --currency HKD \
   [--direct]
