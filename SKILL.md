@@ -49,3 +49,52 @@ API Key: 需在 .env 或環境變數中設定有效的 Gemini API Key。
 持久化: 歷史紀錄自動儲存於 contexts/{{context_name}}.json。
 
 Token 優化: 若對話過長，Agent 可利用 --read-context 取得歷史，進行 Summarize 後，透過 --write-context 寫回精簡版本。
+
+
+---
+
+## 7. 子技能：Flight Planner（航班搜尋）
+
+### 描述
+當行程規劃涉及飛機交通時，使用 `flight_planner/flight_planner.js` 從 Booking.com 搜尋各航段最平機票。
+
+### 使用場景
+- 用戶查詢行程中需要乘搭飛機的航段
+- 用戶詢問某航線的機票價格或班次時間
+- 規劃多段式行程（如：香港→東京→大阪→香港）
+
+### Agent 行為規則
+1. 當 trip_expert 回覆涉及飛機交通時，**主動詢問用戶**：「需要我幫你查一下航班資訊嗎？」
+2. 用戶確認後，提取行程中的航段資訊（出發地 IATA code、目的地 IATA code、日期）
+3. 調用 flight_planner 取得航班數據
+4. 將航班資訊整合到行程回覆中
+
+### 執行指令
+```bash
+node /path/to/flight_planner/flight_planner.js \
+  --segments '[{"from":"HKG","to":"NRT","date":"2026-05-01"},{"from":"NRT","to":"HKG","date":"2026-05-07"}]' \
+  --currency HKD \
+  [--direct]
+```
+
+### 參數說明
+| 參數 | 類型 | 說明 | 預設 |
+|------|------|------|------|
+| `--segments` | JSON Array | 航段列表，每段含 from/to/date（IATA code） | 必填 |
+| `--currency` | String | 貨幣代碼 | `HKD` |
+| `--direct` | Flag | 只搜尋直飛航班 | 否 |
+
+### 輸出格式
+成功時輸出 Markdown 表格 + JSON：
+```
+| 段 | 航班 | 路線 | 出發 → 抵達 | 飛行時間 | 最低價 |
+|----|------|------|------------|---------|--------|
+| 1 | Cathay Pacific | HKG → NRT | 09:30 → 14:45 | 4h 15m 直飛 | HKD1,200 |
+{"success":true,"results":[...]}
+```
+
+失敗時：`{"error": true, "message": "..."}`
+
+### 注意事項
+- 需要 `playwright-core`（Node.js）
+- 價格為 Booking.com 即時數據，僅供參考
